@@ -16,7 +16,8 @@ public class Payment extends BaseModel{
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
     private String transactionId;
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "currencyId")
     private Currency currency;
 
 }

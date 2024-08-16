@@ -28,7 +28,7 @@ public class RazorpayWebhookController {
 
         try {
             // Verify the webhook signature
-            Utils.verifyWebhookSignature(payload, signature, razorpayClientSecret);
+            Utils.verifyWebhookSignature(payload, signature, "aWiPATd6u6RIK6S4yGT19cxc");
 
             // Delegate processing to the service
             webhookService.processWebhook(payload);
