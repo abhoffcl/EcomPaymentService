@@ -22,7 +22,8 @@ public class OrderClient {
         this.orderServiceUpdateOrderStatusPath = orderServiceUpdateOrderStatusPath;
     }
     public void updateOrderStatus(OrderStatusUpdateRequestDto requestDto) {
-        String url = OrderServiceBaseUrl.concat(orderServiceUpdateOrderStatusPath);
+        //String url = OrderServiceBaseUrl.concat(orderServiceUpdateOrderStatusPath);
+        String url =  "http://localhost:8082//orderNotify/update-status";
         RestTemplate restTemplate = restTemplateBuilder.build();
         try {
             ResponseEntity<Void> response = restTemplate.postForEntity(url, requestDto, Void.class);

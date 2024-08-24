@@ -1,6 +1,8 @@
 package dev.Abhishek.PaymentService.controller;
 
+import com.razorpay.RazorpayException;
 import com.razorpay.Utils;
+import dev.Abhishek.PaymentService.exception.WebhookProcessingException;
 import dev.Abhishek.PaymentService.service.RazorpayWebhookServiceImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -27,19 +29,12 @@ public class RazorpayWebhookController {
             @RequestHeader("X-Razorpay-Signature") String signature) {
 
         try {
-            // Verify the webhook signature
             Utils.verifyWebhookSignature(payload, signature, "aWiPATd6u6RIK6S4yGT19cxc");
-
-            // Delegate processing to the service
-            webhookService.processWebhook(payload);
-
-            return ResponseEntity.ok("Webhook processed successfully");
-
-        } catch (Exception e) {
-            // Handle exceptions and return an error response if needed
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error processing webhook: " + e.getMessage());
+        } catch (RazorpayException e) {
+            throw new WebhookProcessingException("Error verifying the webhook signature");
         }
+        webhookService.processWebhook(payload);
+            return ResponseEntity.ok("Webhook processed successfully");
     }
 }
 

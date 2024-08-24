@@ -6,6 +6,7 @@ import dev.Abhishek.PaymentService.config.RazorpayClientConfig;
 import dev.Abhishek.PaymentService.entity.Currency;
 import dev.Abhishek.PaymentService.entity.Payment;
 import dev.Abhishek.PaymentService.entity.PaymentStatus;
+import dev.Abhishek.PaymentService.exception.PaymentLinkGenerationException;
 import dev.Abhishek.PaymentService.exception.PaymentNotFoundException;
 import dev.Abhishek.PaymentService.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
@@ -27,38 +28,41 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public String generatePaymentLink(PaymentRequestDto requestDto) throws RazorpayException {
+    public String generatePaymentLink(PaymentRequestDto requestDto) throws PaymentLinkGenerationException {
         // TODO: 02-06-2024  :  insert payment request dto in payment service
         //  db->payment table with status INPROGRESS
         Payment savedPayment = createPayment(requestDto);
 
-        RazorpayClient razorpay = razorpayClientConfig.getRazorpayClient();
-        JSONObject paymentLinkRequest = new JSONObject();
-        paymentLinkRequest.put("amount", requestDto.getAmount());
-        paymentLinkRequest.put("currency", "INR");
-        paymentLinkRequest.put("accept_partial", false);
-        paymentLinkRequest.put("first_min_partial_amount", 100);
-        paymentLinkRequest.put("expire_by", Instant.now().toEpochMilli() + 600000);
-        paymentLinkRequest.put("reference_id", requestDto.getOrderId());
-        paymentLinkRequest.put("description", "Payment for policy no #23456");
-        JSONObject customer = new JSONObject();
-        customer.put("name", requestDto.getCustomerName());
-        customer.put("contact", requestDto.getCustomerPhone());
-        customer.put("email", requestDto.getCustomerEmail());
-        paymentLinkRequest.put("customer", customer);
-        JSONObject notify = new JSONObject();
-        notify.put("sms", true);
-        notify.put("email", true);
-        paymentLinkRequest.put("notify", notify);
-        paymentLinkRequest.put("reminder_enable", true);
-//        JSONObject notes = new JSONObject();
-//        notes.put("policy_name","Jeevan Bima");
-//        paymentLinkRequest.put("notes",notes);
+        try {
+            RazorpayClient razorpay = razorpayClientConfig.getRazorpayClient();
+            JSONObject paymentLinkRequest = new JSONObject();
+            paymentLinkRequest.put("amount", requestDto.getAmount());
+            paymentLinkRequest.put("currency", "INR");
+            paymentLinkRequest.put("accept_partial", false);
+            paymentLinkRequest.put("first_min_partial_amount", 10000);
+            paymentLinkRequest.put("expire_by", Instant.now().toEpochMilli() + 60000);
+            //paymentLinkRequest.put("reference_id", requestDto.getOrderId());
+            paymentLinkRequest.put("description", "Payment for policy no #23456");
+            JSONObject customer = new JSONObject();
+            customer.put("name", requestDto.getCustomerName());
+            customer.put("contact", requestDto.getCustomerPhone());
+            customer.put("email", requestDto.getCustomerEmail());
+            paymentLinkRequest.put("customer", customer);
+            JSONObject notify = new JSONObject();
+            notify.put("sms", true);
+            notify.put("email", true);
+            paymentLinkRequest.put("notify", notify);
+            paymentLinkRequest.put("reminder_enable", true);
+            JSONObject notes = new JSONObject();
+            notes.put("reference_id", requestDto.getOrderId());
+            paymentLinkRequest.put("notes", notes);
 //        paymentLinkRequest.put("callback_url","https://example-callback-url.com/");
 //        paymentLinkRequest.put("callback_method","get");
-
-        PaymentLink payLink = razorpay.paymentLink.create(paymentLinkRequest);
-        return payLink.toString();
+            PaymentLink payLink = razorpay.paymentLink.create(paymentLinkRequest);
+            return payLink.toString();
+        }catch (RazorpayException ex){
+            throw new PaymentLinkGenerationException("Failed to generate payment link");
+        }
     }
 
     public Payment createPayment(PaymentRequestDto requestDto) {
@@ -76,7 +80,7 @@ public class PaymentServiceImpl implements PaymentService {
         return savedPayment;
     }
 
-    public void updatePaymentStatus(UUID orderId, PaymentStatus status) {
+    public void updatePaymentStatus(UUID orderId, PaymentStatus status)throws PaymentNotFoundException {
         Payment savedPayment = paymentRepository.findByOrderId(orderId);
         if (savedPayment != null) {
             savedPayment.setStatus(status);
