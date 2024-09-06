@@ -34,18 +34,40 @@ public class RazorpayWebhookServiceImpl implements RazorpayWebhookService{
                 .getJSONObject("entity")
                 .getString("order_id");
 
+        // this is the orderId
         String referenceId = jsonObject.getJSONObject("payload")
                 .getJSONObject("payment")
                 .getJSONObject("entity")
                 .getJSONObject("notes").getString("reference_id");
+
 
         String status = jsonObject.getJSONObject("payload")
                 .getJSONObject("payment")
                 .getJSONObject("entity")
                 .getString("status");
 
+
+
+        String customerName=jsonObject.getJSONObject("payload")
+                .getJSONObject("payment")
+                .getJSONObject("entity")
+                .getJSONObject("notes").getString("customerName");
+
+        String customerEmail= jsonObject.getJSONObject("payload")
+                .getJSONObject("payment")
+                .getJSONObject("entity")
+                .getJSONObject("notes").getString("customerEmail");
+
+        String customerPhoneNumber =jsonObject.getJSONObject("payload")
+                .getJSONObject("payment")
+                .getJSONObject("entity")
+                .getJSONObject("notes").getString("customerPhoneNumber");
+
         OrderStatusUpdateRequestDto requestDto =new OrderStatusUpdateRequestDto();
         requestDto.setOrderId(referenceId);
+        requestDto.setUserName(customerName);
+        requestDto.setUserEmail(customerEmail);
+        requestDto.setUserPhoneNumber(customerPhoneNumber);
 
         if ("order.paid".equals(event) || "payment_link.paid".equals(event)) {
             requestDto.setStatus(OrderStatus.COMPLETED);

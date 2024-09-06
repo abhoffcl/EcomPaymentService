@@ -39,7 +39,7 @@ public class PaymentServiceImpl implements PaymentService {
             paymentLinkRequest.put("amount", requestDto.getAmount());
             paymentLinkRequest.put("currency", "INR");
             paymentLinkRequest.put("accept_partial", false);
-            paymentLinkRequest.put("first_min_partial_amount", 10000);
+            paymentLinkRequest.put("first_min_partial_amount", 8000);
             paymentLinkRequest.put("expire_by", Instant.now().toEpochMilli() + 60000);
             //paymentLinkRequest.put("reference_id", requestDto.getOrderId());
             paymentLinkRequest.put("description", "Payment for policy no #23456");
@@ -55,6 +55,10 @@ public class PaymentServiceImpl implements PaymentService {
             paymentLinkRequest.put("reminder_enable", true);
             JSONObject notes = new JSONObject();
             notes.put("reference_id", requestDto.getOrderId());
+            notes.put("customerName",customer.getString("name"));
+            notes.put("customerEmail",customer.getString("email"));
+            notes.put("customerPhoneNumber",customer.getString("contact"));
+
             paymentLinkRequest.put("notes", notes);
 //        paymentLinkRequest.put("callback_url","https://example-callback-url.com/");
 //        paymentLinkRequest.put("callback_method","get");
